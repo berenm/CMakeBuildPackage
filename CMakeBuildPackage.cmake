@@ -206,6 +206,14 @@ function(build_package)
     list(APPEND package_targets ${package})
   endif()
 
+  foreach(executable IN LISTS executables)
+    target_link_libraries(${executable} PUBLIC ${imported_packages} ${system_libraries})
+  endforeach()
+
+  foreach(library IN LISTS libraries)
+    target_link_libraries(${library} PUBLIC ${imported_packages} ${system_libraries})
+  endforeach()
+
 
   if (package_targets)
     install(TARGETS ${package_targets}
