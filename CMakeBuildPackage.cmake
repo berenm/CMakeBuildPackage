@@ -50,6 +50,8 @@ function(build_package)
   get_filename_component(soversion "${version}" NAME_WE)
 
 
+  set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
   set(CMAKE_C_EXTENSIONS OFF)
   set(CMAKE_C_STANDARD 11)
   set(CMAKE_C_STANDARD_REQUIRED TRUE)
