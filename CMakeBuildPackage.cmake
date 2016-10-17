@@ -340,7 +340,6 @@ function(build_package)
   endif()
 endfunction()
 
-list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/packages")
 
 
 if (CMAKE_SYSTEM_NAME MATCHES "[Ww][Ii][Nn][Dd][Oo][Ww][Ss]" AND
@@ -422,3 +421,17 @@ try_compile(_Result ${CMAKE_BINARY_DIR}
 unset(_Result)
 string(REGEX REPLACE "^.*cmake_ARCH ([a-zA-Z0-9_]+).*$" "\\1"
   CMAKE_SYSTEM_ARCHITECTURE "${CMAKE_SYSTEM_ARCHITECTURE}")
+
+
+
+string(TOLOWER "${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_ARCHITECTURE}" system_name)
+string(TOLOWER "${CMAKE_C_COMPILER_ID}-${CMAKE_C_COMPILER_VERSION}" compiler_id)
+list(APPEND CMAKE_PREFIX_PATH
+  "${CMAKE_SOURCE_DIR}/packages/${system_name}-${compiler_id}"
+  "${CMAKE_SOURCE_DIR}/packages/${system_name}"
+  "${CMAKE_SOURCE_DIR}/packages")
+message(STATUS "Looking for packages in:")
+foreach(prefix IN LISTS CMAKE_PREFIX_PATH)
+  string(REPLACE "${CMAKE_SOURCE_DIR}/" "" prefix "${prefix}")
+  message(STATUS "  ${prefix}")
+endforeach()
