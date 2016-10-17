@@ -31,6 +31,8 @@ function(build_package)
     endif()
 
     find_package(${package} REQUIRED NO_MODULE)
+    string(REPLACE "${CMAKE_SOURCE_DIR}/" "" package_dir "${${package}_DIR}")
+    message(STATUS "Found package ${package} in ${package_dir}")
 
     list(GET package 0 package)
     list(APPEND imported_packages ${package}::${package})
