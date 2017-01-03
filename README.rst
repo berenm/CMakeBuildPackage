@@ -20,7 +20,7 @@ This script assumes a conventional source tree for C++ projects:
 - All other packages that one package depend on should be located in a
   ``packages`` folder.
 
-INIT
+BOOTSTRAP
 -------------------------------------------------------------------------------
 
 For a new package named *foo*:
