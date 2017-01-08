@@ -65,11 +65,12 @@ before committing the changes:
 
 .. code:: bash
 
+  rm foo/CMakeBuildPackage.cmake
   wget -Pfoo https://git.io/CMakeBuildPackage.cmake
   cmake -Bfoo/build -Hfoo && cmake --build foo/build
 
-  git -C foo add -u
-  git -C foo commit -m 'Update: CMakeBuildPackage'
+  git -C foo add -u 'CMakeBuildPackage.cmake' 'foo-config*.cmake'
+  git -C foo commit -m 'Update CMakeBuildPackage'
 
 
 SYSTEM INTEGRATION
