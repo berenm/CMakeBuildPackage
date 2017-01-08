@@ -4,3 +4,4 @@ if (TARGET b::b)
 endif()
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}"
   "${CMAKE_BINARY_DIR}/packages/b" EXCLUDE_FROM_ALL)
+message(STATUS "Found b ${b_VERSION} (source)")

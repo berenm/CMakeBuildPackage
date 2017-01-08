@@ -4,3 +4,4 @@ if (TARGET with-deps::with-deps)
 endif()
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}"
   "${CMAKE_BINARY_DIR}/packages/with-deps" EXCLUDE_FROM_ALL)
+message(STATUS "Found with-deps ${with-deps_VERSION} (source)")
