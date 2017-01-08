@@ -1,0 +1,4 @@
+[submodule "packages/system"]
+	path = packages/system
+	url = ../cmake-build-package-system
+	branch = master
