@@ -72,6 +72,33 @@ before committing the changes:
   git -C foo commit -m 'Update: CMakeBuildPackage'
 
 
+SYSTEM INTEGRATION
+-------------------------------------------------------------------------------
+
+Integration with system libraries and third-party libraries that are not using
+CMakeBuildPackage is possible, but the implementation is still experimental.
+
+An experimental meta-package is available in the `packages/system` folder, which
+will be automatically included when available. This meta-package provides the
+required bridges to make several system libraries available as requirements.
+
+For example, assuming the `system` meta-package is correctly located, it should
+be possible to import the *zlib*, *libpng* and some *Boost* libraries with
+something like:
+
+.. code:: cmake
+
+  build_package(NAME foo VERSION 1.0.6
+    REQUIRES
+      "system" # to pull the bridges into the search scope
+      "z"
+      "png>=1.2.3"
+      "boost==1.62.0"
+      "boost::filesystem==1.62.0"
+      "boost::atomic==1.62.0"
+  )
+
+
 LICENSE
 -------------------------------------------------------------------------------
 

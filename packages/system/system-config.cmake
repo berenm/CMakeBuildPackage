@@ -1,0 +1,2 @@
+list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_LIST_DIR}")
+add_library(system::system INTERFACE IMPORTED)
