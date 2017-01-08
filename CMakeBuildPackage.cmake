@@ -204,14 +204,24 @@ function(build_package)
   list(SORT public_headers)
   list(APPEND package_headers ${public_headers})
 
-  if (package_sources OR package_headers)
-    add_library(${package} ${package_sources} ${package_headers})
+  if (package_sources OR public_headers)
+    if (package_sources)
+      add_library(${package} ${package_sources} ${package_headers})
+      target_include_directories(${package}
+        PRIVATE "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>"
+        PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+               "$<INSTALL_INTERFACE:${install_incdir}>")
+      target_link_libraries(${package} PUBLIC ${imported_libraries}
+        ${system_libraries})
+    else()
+      add_library(${package} INTERFACE)
+      target_include_directories(${package}
+        INTERFACE "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+                  "$<INSTALL_INTERFACE:${install_incdir}>")
+      target_link_libraries(${package} INTERFACE ${imported_libraries}
+        ${system_libraries})
+    endif()
     add_library(${package}::${package} ALIAS ${package})
-    target_include_directories(${package}
-       PRIVATE "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>"
-       PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-              "$<INSTALL_INTERFACE:${install_incdir}>")
-    target_link_libraries(${package} PUBLIC ${imported_libraries} ${system_libraries})
 
     foreach(executable IN LISTS executables)
       target_link_libraries(${executable} PUBLIC ${package})
