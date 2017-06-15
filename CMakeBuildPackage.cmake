@@ -350,14 +350,15 @@ function(build_package)
     add_dependencies(packages package-${package})
 
     if (CMakeBuildPackage_SOURCE_ARCHIVE_ENABLED)
+      string(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/" ""
+        pattern "${CMAKE_CURRENT_BINARY_DIR}")
+
       file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/cmake_install_source.cmake"
         "file(INSTALL DESTINATION \"\${CMAKE_INSTALL_PREFIX}\"\n"
         "  TYPE DIRECTORY FILES \"${CMAKE_CURRENT_SOURCE_DIR}/\"\n"
-        "  FILES_MATCHING\n"
-        "  REGEX \"${CMAKE_CURRENT_BINARY_DIR}\" EXCLUDE\n"
-        "  REGEX \"${CMAKE_CURRENT_SOURCE_DIR}/packages\" EXCLUDE\n"
-        "  REGEX \"(\\.git|\\.hg|\\.svn)$\" EXCLUDE\n"
-        "  REGEX \".*\")\n")
+        "  PATTERN \"${pattern}\" EXCLUDE\n"
+        "  PATTERN \"packages\" EXCLUDE\n"
+        "  REGEX \"(\\\\.git|\\\\.hg|\\\\.svn)$\" EXCLUDE)\n")
       add_custom_target(package-${package}-source
         COMMAND ${CPACK_COMMAND} -G TXZ -P "${package}" -R "${version}" -B ${package_pkgdir}-source
           -D "CPACK_INSTALL_COMMANDS=${CMAKE_COMMAND} -D CMAKE_INSTALL_PREFIX=${package_instdir}-source -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_install_source.cmake"
