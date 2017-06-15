@@ -198,6 +198,9 @@ function(add_package package)
 
   project(${package})
 
+  file(GLOB_RECURSE modules RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
+    "include/*.cppm" "include/*.ccm" "include/*.c++m" "include/*.cxxm")
+  list(SORT modules)
   file(GLOB_RECURSE sources RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
     "src/*.c" "src/*.cpp" "src/*.cc" "src/*.c++" "src/*.cxx")
   list(SORT sources)
@@ -209,6 +212,51 @@ function(add_package package)
   set(package_headers ${headers})
   set(executable_sources)
 
+  set(package_modules)
+  foreach(source IN LISTS modules)
+    file(READ "${source}" contents)
+    string(REGEX REPLACE "/\\*(\\*[^/]|[^*]+)*\\*/" "" contents "${contents}")
+    string(REGEX REPLACE "//[^\n]*\n" "" contents "${contents}")
+    string(REGEX REPLACE "\n" ";" contents "${contents}")
+
+    set(module_depends)
+    set(module_options)
+    foreach(line IN LISTS contents)
+      if (line MATCHES "^[\t\n ]*import[\t\n ]+")
+        string(REGEX REPLACE "^[\t\n ]*import[\t\n ]+(.*)" "\\1" depends "${line}")
+
+        file(GLOB_RECURSE depend_file "${CMAKE_SOURCE_DIR}/${depends}.pcm")
+        if (depend_file)
+          list(APPEND module_depends "${depend_file}")
+          list(APPEND module_options "-fmodule-file=${depend_file}")
+        else()
+          list(APPEND module_depends "${CMAKE_BINARY_DIR}/lib/${depends}.pcm")
+          list(APPEND module_options "-fmodule-file=${CMAKE_BINARY_DIR}/lib/${depends}.pcm")
+        endif()
+      endif()
+    endforeach()
+
+    string(REGEX REPLACE "\\.[^.]+$" ".pcm" module "${source}")
+    string(REGEX REPLACE "^include"  "lib"  module "${module}")
+
+    add_custom_command(OUTPUT "${CMAKE_BINARY_DIR}/${module}"
+      DEPENDS "${source}" ${module_depends}
+      COMMAND ${CMAKE_CXX_COMPILER} --precompile -fmodules-ts -std=c++14
+        ${module_options}
+        "-I${CMAKE_CURRENT_SOURCE_DIR}/src"
+        "-I${CMAKE_CURRENT_SOURCE_DIR}/include"
+        "-o${CMAKE_BINARY_DIR}/${module}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/${source}")
+    set_property(SOURCE "${CMAKE_BINARY_DIR}/${module}"
+      PROPERTY LANGUAGE CXX)
+    set_property(SOURCE "${CMAKE_BINARY_DIR}/${module}"
+      PROPERTY COMPILE_FLAGS "-Wno-unused-command-line-argument")
+
+    install(FILES "${CMAKE_BINARY_DIR}/${module}"
+      DESTINATION "${install_libdir}")
+    list(APPEND package_sources "${CMAKE_BINARY_DIR}/${module}")
+    list(APPEND package_modules "${module}")
+  endforeach()
 
   foreach(source IN LISTS sources)
     file(READ "${source}" contents)
@@ -317,12 +365,26 @@ function(add_package package)
              "$<INSTALL_INTERFACE:${install_incdir}>")
     target_link_libraries(${package} PUBLIC ${system_libraries})
 
+    foreach(module IN LISTS package_modules)
+      target_compile_options(${package}
+        PUBLIC "$<BUILD_INTERFACE:-fmodule-file=${CMAKE_BINARY_DIR}/${module}>"
+               "$<INSTALL_INTERFACE:-fmodule-file=\${_IMPORT_PREFIX}/${install_libdir}/${module}>"
+               "-fmodules-ts")
+    endforeach()
+
   else()
     add_library(${package} INTERFACE)
     target_include_directories(${package}
       INTERFACE "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
                 "$<INSTALL_INTERFACE:${install_incdir}>")
     target_link_libraries(${package} INTERFACE ${system_libraries})
+
+    foreach(module IN LISTS package_modules)
+      target_compile_options(${package}
+        INTERFACE "$<BUILD_INTERFACE:-fmodule-file=${CMAKE_BINARY_DIR}/${module}>"
+                  "$<INSTALL_INTERFACE:-fmodule-file=\${_IMPORT_PREFIX}/${install_libdir}/${module}>"
+                  "-fmodules-ts")
+    endforeach()
   endif()
   add_library(${package}::${package} ALIAS ${package})
 

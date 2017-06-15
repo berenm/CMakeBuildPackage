@@ -1,6 +1,6 @@
-#include "b.hpp"
+import b;
 
-int main(int argc, char const* argv[]) {
+int main(int argc, char const *argv[]) {
   b::hello();
   return 0;
 }

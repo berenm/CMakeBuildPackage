@@ -1,5 +1,5 @@
-#include "a.hpp"
+module a;
 
 namespace a {
-  void hello() {}
-}
+void hello() {}
+} // namespace a

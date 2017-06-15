@@ -1,7 +1,6 @@
-#include "b.hpp"
-
-#include "a.hpp"
+import a;
+module b;
 
 namespace b {
-  void hello() { a::hello(); }
-}
+void hello() { a::hello(); }
+} // namespace b

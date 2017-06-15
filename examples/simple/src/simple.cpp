@@ -1,5 +1,5 @@
-#include "simple.hpp"
+module simple;
 
 namespace simple {
-  void hello() {}
-}
+void hello() { foo(); }
+} // namespace simple
