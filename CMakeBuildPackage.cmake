@@ -101,10 +101,10 @@ function(build_package)
   project(${package})
 
   file(GLOB_RECURSE sources RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
-    "src/*.c" "src/*.cpp" "src/*.cc" "src/*.c++")
+    "src/*.c" "src/*.cpp" "src/*.cc" "src/*.c++" "src/*.cxx")
   list(SORT sources)
   file(GLOB_RECURSE headers RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
-    "src/*.h" "src/*.hpp" "src/*.hh" "src/*.h++")
+    "src/*.h" "src/*.hpp" "src/*.hh" "src/*.h++" "src/*.hxx")
   list(SORT headers)
 
   set(package_sources ${sources})
@@ -200,7 +200,7 @@ function(build_package)
 
 
   file(GLOB_RECURSE public_headers RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
-    "include/*.h" "include/*.hpp" "include/*.hh" "include/*.h++")
+    "include/*.h" "include/*.hpp" "include/*.hh" "include/*.h++" "include/*.hxx")
   list(SORT public_headers)
   list(APPEND package_headers ${public_headers})
 
@@ -260,7 +260,8 @@ function(build_package)
     PATTERN "include/*.h"
     PATTERN "include/*.hpp"
     PATTERN "include/*.hh"
-    PATTERN "include/*.h++")
+    PATTERN "include/*.h++"
+    PATTERN "include/*.hxx")
 
 
   if (CMakeBuildPackage_SOURCE_PACKAGE_EXCLUDE_FROM_ALL)
