@@ -51,6 +51,8 @@ function(build_package)
 
     find_package(${package} ${version} ${components} NO_MODULE REQUIRED)
     list(APPEND imported_libraries ${package}::${library})
+
+    string(REPLACE ";" " " version "${version}")
     list(APPEND package_requires "${package} ${version} ${components}")
   endforeach()
 
