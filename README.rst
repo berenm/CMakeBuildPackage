@@ -56,6 +56,27 @@ dependencies.
       "baz==3.2.1"
   )
 
+OPTIONS
+-------------------------------------------------------------------------------
+
+Some package may offer build-time customization by defining compile time
+options. Boolean options, as well as multi-value options are supported.
+
+Options are passed the preprocessor as macros with the expected values, and the
+prebuilt versions of the package will remember the options and their values,
+and will expose them in the package public interface.
+
+.. code:: cmake
+
+  list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}")
+  include(CMakeBuildPackage)
+
+  build_package(NAME foo VERSION 1.0.6
+    OPTIONS
+      OPTION FOO_ENABLE_EXPERIMENTAL "Enable super experimental feature" OFF
+      OPTION FOO_BACKEND             "Backend to compile for"            BAR "BAR;BAZ;BOO"
+  )
+
 
 UPDATE
 -------------------------------------------------------------------------------
