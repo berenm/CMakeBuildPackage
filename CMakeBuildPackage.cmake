@@ -388,25 +388,23 @@ if (CMAKE_SYSTEM_NAME MATCHES "[Ww][Ii][Nn][Dd][Oo][Ww][Ss]" AND
 endif()
 
 
-# --------------------------------------------------------------------------------------------------
-# Correctly determine architecture. CMAKE_SYSTEM_PROCESSOR is wrong in many cases.
+# ------------------------------------------------------------------------------
+# Determine architecture. CMAKE_SYSTEM_PROCESSOR is wrong in many cases.
 
-if (CMAKE_SYSTEM_ARCHITECTURE)
-  return()
-endif()
+if (NOT CMAKE_SYSTEM_ARCHITECTURE)
+  enable_language(C CXX)
 
-enable_language(C)
+  # Based on https://github.com/petroules/solar-cmake/blob/master/TargetArch.cmake
 
-# Based on https://github.com/petroules/solar-cmake/blob/master/TargetArch.cmake
+  # Based on the Qt 5 processor detection code, so should be very accurate
+  # https://qt.gitorious.org/qt/qtbase/blobs/master/src/corelib/global/qprocessordetection.h
+  # Currently handles arm (v5, v6, v7), x86 (32/64), ia64, and ppc (32/64)
 
-# Based on the Qt 5 processor detection code, so should be very accurate
-# https://qt.gitorious.org/qt/qtbase/blobs/master/src/corelib/global/qprocessordetection.h
-# Currently handles arm (v5, v6, v7), x86 (32/64), ia64, and ppc (32/64)
+  # Regarding POWER/PowerPC, just as is noted in the Qt source,
+  # "There are many more known variants/revisions that we do not handle/detect."
 
-# Regarding POWER/PowerPC, just as is noted in the Qt source,
-# "There are many more known variants/revisions that we do not handle/detect."
-
-file(WRITE "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/testArchitecture.c" [[
+  file(WRITE "${CMAKE_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/CMakeTmp/testArchitecture.c"
+    [[
 #if defined(__arm64) || defined(__arm64__)
   #error cmake_ARCH aarch64
 #elif defined(__arm__) || defined(__TARGET_ARCH_ARM) || defined(_M_ARM)
@@ -437,7 +435,8 @@ file(WRITE "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/testArchitectur
   #endif
 #elif defined(__i386) || defined(__i386__) || defined(_M_IX86)
   #error cmake_ARCH i386
-#elif defined(__x86_64) || defined(__x86_64__) || defined(__amd64) || defined(_M_X64)
+#elif defined(__x86_64) || defined(__x86_64__) || defined(__amd64) || \
+      defined(_M_X64)
   #error cmake_ARCH amd64
 #elif defined(__ia64) || defined(__ia64__) || defined(_M_IA64)
   #error cmake_ARCH ia64
@@ -452,25 +451,33 @@ file(WRITE "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/testArchitectur
 #else
   #error cmake_ARCH unknown
 #endif
-]])
+  ]])
 
-try_compile(_Result ${CMAKE_BINARY_DIR}
-  "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/testArchitecture.c"
-  OUTPUT_VARIABLE CMAKE_SYSTEM_ARCHITECTURE)
-unset(_Result)
-string(REGEX REPLACE "^.*cmake_ARCH ([a-zA-Z0-9_]+).*$" "\\1"
-  CMAKE_SYSTEM_ARCHITECTURE "${CMAKE_SYSTEM_ARCHITECTURE}")
+  try_compile(_CBP_result ${CMAKE_BINARY_DIR}
+    "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/testArchitecture.c"
+    OUTPUT_VARIABLE CMAKE_SYSTEM_ARCHITECTURE)
+  unset(_CBP_result)
+  string(REGEX REPLACE "^.*cmake_ARCH ([a-zA-Z0-9_]+).*$" "\\1"
+    CMAKE_SYSTEM_ARCHITECTURE "${CMAKE_SYSTEM_ARCHITECTURE}")
+  set(CMAKE_SYSTEM_ARCHITECTURE "${CMAKE_SYSTEM_ARCHITECTURE}" CACHE STRING
+    "Current platform architecture name" FORCE)
+  mark_as_advanced(CMAKE_SYSTEM_ARCHITECTURE)
+endif()
 
 
-
-string(TOLOWER "${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_ARCHITECTURE}" system_name)
-string(TOLOWER "${CMAKE_C_COMPILER_ID}-${CMAKE_C_COMPILER_VERSION}" compiler_id)
+string(TOLOWER "${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_ARCHITECTURE}" _CBP_system_name)
+string(TOLOWER "${CMAKE_C_COMPILER_ID}"      _CBP_compiler_id)
+string(TOLOWER "${CMAKE_C_COMPILER_VERSION}" _CBP_compiler_version)
 list(APPEND CMAKE_PREFIX_PATH
-  "${CMAKE_SOURCE_DIR}/packages/${system_name}-${compiler_id}"
-  "${CMAKE_SOURCE_DIR}/packages/${system_name}"
+  "${CMAKE_SOURCE_DIR}/packages/${_CBP_system_name}-${_CBP_compiler_id}-${_CBP_compiler_version}"
+  "${CMAKE_SOURCE_DIR}/packages/${_CBP_system_name}-${_CBP_compiler_id}"
+  "${CMAKE_SOURCE_DIR}/packages/${_CBP_system_name}"
   "${CMAKE_SOURCE_DIR}/packages")
 message(STATUS "Looking for packages in:")
 foreach(prefix IN LISTS CMAKE_PREFIX_PATH)
   string(REPLACE "${CMAKE_SOURCE_DIR}/" "" prefix "${prefix}")
   message(STATUS "  ${prefix}")
 endforeach()
+unset(_CBP_system_name)
+unset(_CBP_compiler_id)
+unset(_CBP_compiler_version)
