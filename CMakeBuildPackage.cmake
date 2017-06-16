@@ -21,7 +21,7 @@ option(CMakeBuildPackage_SOURCE_ARCHIVE_ENABLED
   ON)
 
 function(build_package)
-  cmake_parse_arguments(CBP_PACKAGE "" "NAME;VERSION" "REQUIRES" ${ARGN})
+  cmake_parse_arguments(PARSE_ARGV 0 CBP_PACKAGE "" "NAME;VERSION" "REQUIRES")
 
   foreach(package IN LISTS CBP_PACKAGE_REQUIRES)
     if (package MATCHES "(@|==)")
