@@ -113,8 +113,8 @@ something like:
   build_package(NAME foo VERSION 1.0.6
     REQUIRES
       "system" # to pull the bridges into the search scope
-      "z"
-      "png>=1.2.3"
+      "zlib"
+      "libpng>=1.2.3"
       "boost==1.62.0"
       "boost::filesystem==1.62.0"
       "boost::atomic==1.62.0"
