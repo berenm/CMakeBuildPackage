@@ -516,8 +516,12 @@ function(build_package)
   endif()
 
   add_package(${package} VERSION ${version})
-  add_package_requires(${package} REQUIRES ${CBP_PACKAGE_REQUIRES})
-  add_package_options(${package} OPTIONS ${CBP_PACKAGE_OPTIONS})
+  if (CBP_PACKAGE_REQUIRES)
+    add_package_requires(${package} REQUIRES ${CBP_PACKAGE_REQUIRES})
+  endif()
+  if (CBP_PACKAGE_OPTIONS)
+    add_package_options(${package} OPTIONS ${CBP_PACKAGE_OPTIONS})
+  endif()
 endfunction()
 
 
