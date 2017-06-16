@@ -20,47 +20,55 @@ option(CMakeBuildPackage_SOURCE_ARCHIVE_ENABLED
   "Generate tar.xz archives foreach declared package"
   ON)
 
-function(build_package)
-  cmake_parse_arguments(PARSE_ARGV 0 CBP_PACKAGE "" "NAME;VERSION" "REQUIRES")
+function(add_package_requires package)
+  cmake_parse_arguments(PARSE_ARGV 0 CBP_PACKAGE "" "" "REQUIRES")
 
-  foreach(package IN LISTS CBP_PACKAGE_REQUIRES)
-    if (package MATCHES "(@|==)")
-      string(REGEX REPLACE ".*(@|==)(.*)" "\\2;EXACT" version "${package}")
-      string(REGEX REPLACE "(@|==).*" "" package "${package}")
-    elseif(package MATCHES "( |>=)")
-      string(REGEX REPLACE ".*( |>=)(.*)" "\\2" version "${package}")
-      string(REGEX REPLACE "( |>=).*" "" package "${package}")
+  foreach(require IN LISTS CBP_PACKAGE_REQUIRES)
+    if (require MATCHES "(@|==)")
+      string(REGEX REPLACE ".*(@|==)(.*)" "\\2;EXACT" version "${require}")
+      string(REGEX REPLACE "(@|==).*" "" require "${require}")
+    elseif(require MATCHES "( |>=)")
+      string(REGEX REPLACE ".*( |>=)(.*)" "\\2" version "${require}")
+      string(REGEX REPLACE "( |>=).*" "" require "${require}")
     else()
       unset(version)
     endif()
 
-    if (package MATCHES "::")
-      string(REGEX REPLACE ".*::" "" library "${package}")
-      string(REGEX REPLACE "::.*" "" package "${package}")
-      if (TARGET ${package}::${library})
+    if (require MATCHES "::")
+      string(REGEX REPLACE ".*::" "" library "${require}")
+      string(REGEX REPLACE "::.*" "" require "${require}")
+      if (TARGET ${require}::${library})
         continue()
       endif()
       set(components COMPONENTS ${library})
     else()
-      if (TARGET ${package}::${package})
+      if (TARGET ${require}::${require})
         continue()
       endif()
-      set(library ${package})
+      set(library ${require})
       unset(components)
     endif()
 
-    find_package(${package} ${version} ${components} NO_MODULE REQUIRED)
-    list(APPEND imported_libraries ${package}::${library})
+    find_package(${require} ${version} ${components} NO_MODULE REQUIRED)
+    list(APPEND imported_libraries ${require}::${library})
 
     string(REPLACE ";" " " version "${version}")
-    list(APPEND package_requires "${package} ${version} ${components}")
+    list(APPEND package_requires "${require} ${version} ${components}")
   endforeach()
 
-  if (CBP_PACKAGE_NAME)
-    set(package "${CBP_PACKAGE_NAME}")
-  else()
-    get_filename_component(package "${CMAKE_CURRENT_SOURCE_DIR}" NAME)
-  endif()
+  get_target_property(type ${package} TYPE)
+  string(REGEX REPLACE "INTERFACE_LIBRARY" "INTERFACE" type "${type}")
+  string(REGEX REPLACE ".*_LIBRARY" "PUBLIC" type "${type}")
+  target_link_libraries(${package} ${type} ${imported_libraries})
+
+  foreach (require IN LISTS package_requires)
+    file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/${package}-requires.cmake"
+      "find_package(${require} NO_MODULE REQUIRED)\n")
+  endforeach()
+endfunction()
+
+function(add_package package)
+  cmake_parse_arguments(PARSE_ARGV 0 CBP_PACKAGE "" "VERSION" "")
 
   if (CBP_PACKAGE_VERSION)
     set(version "${CBP_PACKAGE_VERSION}")
@@ -206,44 +214,32 @@ function(build_package)
   list(SORT public_headers)
   list(APPEND package_headers ${public_headers})
 
-  if (package_sources OR public_headers)
-    if (package_sources)
-      add_library(${package} ${package_sources} ${package_headers})
-      target_include_directories(${package}
-        PRIVATE "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>"
-        PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-               "$<INSTALL_INTERFACE:${install_incdir}>")
-      target_link_libraries(${package} PUBLIC ${imported_libraries}
-        ${system_libraries})
-    else()
-      add_library(${package} INTERFACE)
-      target_include_directories(${package}
-        INTERFACE "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-                  "$<INSTALL_INTERFACE:${install_incdir}>")
-      target_link_libraries(${package} INTERFACE ${imported_libraries}
-        ${system_libraries})
-    endif()
-    add_library(${package}::${package} ALIAS ${package})
+  if (package_sources)
+    add_library(${package} ${package_sources} ${package_headers})
+    target_include_directories(${package}
+      PRIVATE "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>"
+      PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+             "$<INSTALL_INTERFACE:${install_incdir}>")
+    target_link_libraries(${package} PUBLIC ${system_libraries})
 
-    foreach(executable IN LISTS executables)
-      target_link_libraries(${executable} PUBLIC ${package})
-    endforeach()
-
-    foreach(library IN LISTS libraries)
-      target_link_libraries(${library} PUBLIC ${package})
-    endforeach()
-
-    list(APPEND package_targets ${package})
+  else()
+    add_library(${package} INTERFACE)
+    target_include_directories(${package}
+      INTERFACE "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+                "$<INSTALL_INTERFACE:${install_incdir}>")
+    target_link_libraries(${package} INTERFACE ${system_libraries})
   endif()
+  add_library(${package}::${package} ALIAS ${package})
 
   foreach(executable IN LISTS executables)
-    target_link_libraries(${executable} PUBLIC ${imported_libraries} ${system_libraries})
+    target_link_libraries(${executable} PUBLIC ${package})
   endforeach()
 
   foreach(library IN LISTS libraries)
-    target_link_libraries(${library} PUBLIC ${imported_libraries} ${system_libraries})
+    target_link_libraries(${library} PUBLIC ${package})
   endforeach()
 
+  list(APPEND package_targets ${package})
 
   if (package_targets)
     install(TARGETS ${package_targets}
@@ -281,15 +277,14 @@ function(build_package)
     "  \"\${CMAKE_BINARY_DIR}/packages/${package}\" ${exclude})\n"
     "message(STATUS \"Found ${package} \${${package}_VERSION} (source)\")\n")
   file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/${package}-config.cmake"
-    "# AUTOGENERATED\n")
-  foreach (require IN LISTS package_requires)
-    file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/${package}-config.cmake"
-      "find_package(${require} NO_MODULE REQUIRED)\n")
-  endforeach()
-  file(APPEND "${CMAKE_CURRENT_BINARY_DIR}/${package}-config.cmake"
+    "# AUTOGENERATED\n"
+    "include(\"\${CMAKE_CURRENT_LIST_DIR}/${package}-requires.cmake\")\n"
     "include(\"\${CMAKE_CURRENT_LIST_DIR}/${package}-targets.cmake\")\n"
     "message(STATUS \"Found ${package} \${${package}_VERSION} (prebuilt)\")\n")
+  file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/${package}-requires.cmake"
+    "# AUTOGENERATED\n")
   install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${package}-config.cmake"
+                "${CMAKE_CURRENT_BINARY_DIR}/${package}-requires.cmake"
     DESTINATION "${install_cmakedir}")
 
   if (version)
@@ -372,11 +367,29 @@ function(build_package)
     endif()
   endif()
 
-
   if (NOT CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
     set(${package}_VERSION "${version}" CACHE STRING "${package} package version")
     set(${package}_FOUND TRUE CACHE BOOL "${package} package was found")
   endif()
+endfunction()
+
+function(build_package)
+  cmake_parse_arguments(PARSE_ARGV 0 CBP_PACKAGE "" "NAME;VERSION" "REQUIRES")
+
+  if (CBP_PACKAGE_NAME)
+    set(package "${CBP_PACKAGE_NAME}")
+  else()
+    get_filename_component(package "${CMAKE_CURRENT_SOURCE_DIR}" NAME)
+  endif()
+
+  if (CBP_PACKAGE_VERSION)
+    set(version "${CBP_PACKAGE_VERSION}")
+  else()
+    set(version "0.0.0")
+  endif()
+
+  add_package(${package} VERSION ${version})
+  add_package_requires(${package} REQUIRES ${CBP_PACKAGE_REQUIRES})
 endfunction()
 
 
