@@ -111,9 +111,9 @@ function(add_package package)
       set(${executable}_dir "${directory}")
 
       if (executable STREQUAL package)
-        add_executable(${executable}-exe ${source})
-        set_target_properties(${executable}-exe PROPERTIES OUTPUT_NAME ${executable})
-        set(executable "${executable}-exe")
+        add_executable(${package}-${executable} ${source})
+        set_target_properties(${package}-${executable} PROPERTIES OUTPUT_NAME ${executable})
+        set(executable "${package}-${executable}")
       else()
         add_executable(${executable} ${source})
       endif()
@@ -152,7 +152,14 @@ function(add_package package)
       if (library_sources)
         list(REMOVE_ITEM package_sources ${library_sources})
 
-        add_library(${library} ${library_sources} ${library_headers})
+        if (library STREQUAL package)
+          add_library(${package}-${library} ${library_sources} ${library_headers})
+          set_target_properties(${package}-${library} PROPERTIES OUTPUT_NAME ${library})
+          set(library "${package}-${library}")
+        else()
+          add_library(${library} ${library_sources} ${library_headers})
+        endif()
+
         add_library(${package}::${library} ALIAS ${library})
         target_include_directories(${library}
            PRIVATE "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>"
