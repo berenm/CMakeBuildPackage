@@ -56,6 +56,23 @@ dependencies.
       "baz==3.2.1"
   )
 
+
+UPDATE
+-------------------------------------------------------------------------------
+
+Download `CMakeBuildPackage.cmake` from the same URL as above, and rebuild once
+before committing the changes:
+
+.. code:: bash
+
+  rm foo/CMakeBuildPackage.cmake
+  wget -Pfoo https://git.io/CMakeBuildPackage.cmake
+  cmake -Bfoo/build -Hfoo && cmake --build foo/build
+
+  git -C foo add -u 'CMakeBuildPackage.cmake' 'foo-config*.cmake'
+  git -C foo commit -m 'Update CMakeBuildPackage'
+
+
 OPTIONS
 -------------------------------------------------------------------------------
 
@@ -76,22 +93,6 @@ and will expose them in the package public interface.
       OPTION FOO_ENABLE_EXPERIMENTAL "Enable super experimental feature" OFF
       OPTION FOO_BACKEND             "Backend to compile for"            BAR "BAR;BAZ;BOO"
   )
-
-
-UPDATE
--------------------------------------------------------------------------------
-
-Download `CMakeBuildPackage.cmake` from the same URL as above, and rebuild once
-before committing the changes:
-
-.. code:: bash
-
-  rm foo/CMakeBuildPackage.cmake
-  wget -Pfoo https://git.io/CMakeBuildPackage.cmake
-  cmake -Bfoo/build -Hfoo && cmake --build foo/build
-
-  git -C foo add -u 'CMakeBuildPackage.cmake' 'foo-config*.cmake'
-  git -C foo commit -m 'Update CMakeBuildPackage'
 
 
 SYSTEM INTEGRATION
