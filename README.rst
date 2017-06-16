@@ -104,6 +104,10 @@ An experimental meta-package is available in the `packages/system` folder, which
 will be automatically included when available. This meta-package provides the
 required bridges to make several system libraries available as requirements.
 
+As a starting point, the https://github.com/berenm/cmake-build-package-system
+repository can be used as a submodule in packages/system to bridge a few
+libraries of your system into the packaging mechanism.
+
 For example, assuming the `system` meta-package is correctly located, it should
 be possible to import the *zlib*, *libpng* and some *Boost* libraries with
 something like:
