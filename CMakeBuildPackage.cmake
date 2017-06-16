@@ -78,36 +78,6 @@ function(add_package package)
   get_filename_component(soversion "${version}" NAME_WE)
 
 
-  set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
-  set(CMAKE_C_EXTENSIONS OFF)
-  set(CMAKE_C_STANDARD 11)
-  set(CMAKE_C_STANDARD_REQUIRED TRUE)
-
-  set(CMAKE_CXX_EXTENSIONS OFF)
-  set(CMAKE_CXX_STANDARD 14)
-  set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
-
-  set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
-  set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
-
-  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
-  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
-  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
-
-  if (CMAKE_SYSTEM_NAME MATCHES "[Ww][Ii][Nn][Dd][Oo][Ww][Ss]")
-    set(install_bindir   "${CMAKE_INSTALL_BINDIR}")
-    set(install_libdir   "${CMAKE_INSTALL_LIBDIR}")
-    set(install_incdir   "${CMAKE_INSTALL_INCLUDEDIR}")
-    set(install_cmakedir "cmake")
-  else()
-    set(install_bindir   "${CMAKE_INSTALL_BINDIR}/${package}-${version}")
-    set(install_libdir   "${CMAKE_INSTALL_LIBDIR}/${package}-${version}")
-    set(install_incdir   "${CMAKE_INSTALL_INCLUDEDIR}/${package}-${version}")
-    set(install_cmakedir "${CMAKE_INSTALL_DATADIR}/cmake/${package}-${version}")
-  endif()
-
-
   project(${package})
 
   file(GLOB_RECURSE sources RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
@@ -386,6 +356,35 @@ function(build_package)
     set(version "${CBP_PACKAGE_VERSION}")
   else()
     set(version "0.0.0")
+  endif()
+
+  set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+  set(CMAKE_C_EXTENSIONS OFF)
+  set(CMAKE_C_STANDARD 11)
+  set(CMAKE_C_STANDARD_REQUIRED TRUE)
+
+  set(CMAKE_CXX_EXTENSIONS OFF)
+  set(CMAKE_CXX_STANDARD 14)
+  set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
+
+  set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
+  set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
+
+  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
+  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+
+  if (CMAKE_SYSTEM_NAME MATCHES "[Ww][Ii][Nn][Dd][Oo][Ww][Ss]")
+    set(install_bindir   "${CMAKE_INSTALL_BINDIR}")
+    set(install_libdir   "${CMAKE_INSTALL_LIBDIR}")
+    set(install_incdir   "${CMAKE_INSTALL_INCLUDEDIR}")
+    set(install_cmakedir "cmake")
+  else()
+    set(install_bindir   "${CMAKE_INSTALL_BINDIR}/${package}-${version}")
+    set(install_libdir   "${CMAKE_INSTALL_LIBDIR}/${package}-${version}")
+    set(install_incdir   "${CMAKE_INSTALL_INCLUDEDIR}/${package}-${version}")
+    set(install_cmakedir "${CMAKE_INSTALL_DATADIR}/cmake/${package}-${version}")
   endif()
 
   add_package(${package} VERSION ${version})
