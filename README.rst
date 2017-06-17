@@ -6,19 +6,22 @@ INTRODUCTION
 
 This script assumes a conventional source tree for C++ projects:
 
-- All sources to be compiled are assumed to be found in an ``src`` folder.
+- All sources to be compiled are assumed to be located in an ``src`` folder.
 
-- All public header files to be installed are assumed to be found in an
+- All public header files to be installed are assumed to be located in an
   ``include`` folder.
 
-- All source files that contains a main function are assumed to be compiled
-  to executables of the same name as the source file.
+- All source files that contains a main function are assumed to be executables
+  of the same name as the source file.
 
-- All other sources are assumed to be compiled together to a library of the
-  name of the folder containing them, or the name of the package itself.
+- All other sources compiled together to a library of the name of the folder
+  containing them, or the name of the package itself.
 
-- All other packages that one package depend on should be located in a
-  ``packages`` folder.
+- All other packages that a package depends on should be located in a
+  ``packages`` folder, or one of the predefined lookup paths.
+  
+- Prebuilt packages can be provided as an alternative to source packages,
+  assuming the platform and compiler they were built for match the current ones.
 
 BOOTSTRAP
 -------------------------------------------------------------------------------
