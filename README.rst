@@ -15,10 +15,10 @@ This script assumes a conventional source tree for C++ projects:
   of the same name as the source file.
 
 - All other sources compiled together to a library of the name of the folder
-  containing them, or the name of the package itself.
+  containing them, or the name of the package.
 
 - All other packages that a package depends on should be located in a
-  ``packages`` folder, or one of the predefined lookup paths.
+  ``packages`` folder.
   
 - Prebuilt packages can be provided as an alternative to source packages,
   assuming the platform and compiler they were built for match the current ones.
