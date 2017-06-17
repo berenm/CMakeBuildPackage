@@ -1,4 +1,4 @@
-Automatic build script for modern CMake and modern C/C++
+Automated build for modern CMake and modern C/C++
 ===============================================================================
 
 INTRODUCTION
