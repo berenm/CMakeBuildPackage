@@ -1,3 +1,5 @@
+cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
+
 if (CMakeBuildPackage_FOUND)
   return()
 endif()
@@ -493,7 +495,7 @@ function(build_package)
   set(CMAKE_C_STANDARD_REQUIRED TRUE)
 
   set(CMAKE_CXX_EXTENSIONS OFF)
-  set(CMAKE_CXX_STANDARD 14)
+  set(CMAKE_CXX_STANDARD 17)
   set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
   set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
